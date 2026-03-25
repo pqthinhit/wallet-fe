@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shared Wallet</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --bg: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Form elements */
+        input,
+        select {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-outline {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: none;
+        }
+
+        .btn-danger {
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            background: none;
+        }
+
+        .flex {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .flex-mobile-column {
+            flex-direction: column;
+        }
+
+        /* Balance Box */
+        .balance-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+
+        /* TABLE OPTIMIZATION - FIX TRÀN */
+        .table-wrapper {
+            width: 100%;
+            overflow: hidden;
+            /* Không cho cuộn ngang để ép nội dung */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            /* Ép các cột tuân thủ width */
+        }
+
+        th,
+        td {
+            padding: 12px 4px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: left;
+            /* Tạo dấu 3 chấm khi text dài */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Chia tỷ lệ cột cho Mobile (Tổng 100%) */
+        th:nth-child(1),
+        td:nth-child(1) {
+            width: 18%;
+        }
+
+        /* Ngày */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 22%;
+        }
+
+        /* Tên */
+        th:nth-child(3),
+        td:nth-child(3) {
+            width: 35%;
+        }
+
+        /* Ghi chú */
+        th:nth-child(4),
+        td:nth-child(4) {
+            width: 25%;
+            text-align: right;
+        }
+
+        /* Tiền */
+
+        th {
+            color: var(--gray);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .income {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .expense {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        /* Wallet Item */
+        .wallet-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="auth-section" class="card">
+            <h2 style="text-align: center; margin-bottom: 20px;">Shared Wallet</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mật khẩu">
+
+            <div id="otp-group" class="hidden">
+                <input type="text" id="otp" placeholder="Nhập mã OTP">
+                <button class="btn-primary" onclick="verifyOTP()">Xác thực</button>
+            </div>
+
+            <div id="auth-buttons" class="flex flex-mobile-column">
+                <button class="btn-primary" onclick="login()">Đăng nhập</button>
+                <button class="btn-outline" onclick="register()">Đăng ký</button>
+            </div>
+        </div>
+
+        <div id="dashboard-section" class="hidden">
+            <div class="flex" style="justify-content: space-between; align-items: center; padding: 0 5px;">
+                <h2 style="margin:0">Ví của tôi</h2>
+                <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="createWallet()">+
+                    Mới</button>
+            </div>
+            <div id="wallet-list"></div>
+        </div>
+
+        <div id="detail-section" class="hidden">
+            <div style="margin-bottom: 15px;">
+                <a href="#" onclick="showDashboard()"
+                    style="text-decoration:none; color: var(--primary); font-weight:600;">← Quay lại</a>
+            </div>
+
+            <div class="balance-box">
+                <h3 id="view-wallet-name" style="margin:0; font-weight:400; font-size:1rem;">Tên Ví</h3>
+                <div class="balance-amount" id="view-balance">0đ</div>
+                <p style="margin:0; opacity: 0.8; font-size: 0.75rem;">Số dư hiện tại</p>
+            </div>
+
+            <div class="flex">
+                <button class="btn-primary" onclick="addTransaction('income')">Thu</button>
+                <button class="btn-danger" onclick="addTransaction('expense')">Chi</button>
+                <button class="btn-outline" style="width: 30%;" onclick="inviteMember()">👥</button>
+            </div>
+
+            <div class="card" style="padding: 10px;">
+                <div class="flex" style="margin-bottom: 10px;">
+                    <select id="filter-month" onchange="loadHistory()"></select>
+                    <select id="filter-year" onchange="loadHistory()"></select>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Tên</th>
+                                <th>Ghi chú</th>
+                                <th style="text-align: right;">Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 0 10px; padding-bottom: 30px;">
+                <button class="btn-danger" onclick="deleteCurrentWallet()"
+                    style="background: none; border: 1px solid var(--danger); font-size: 0.8rem; padding: 10px;">
+                    🗑️ Xóa ví này
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="./js/app.js"></script>
+</body>
+
+</html>
